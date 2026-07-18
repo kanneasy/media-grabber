@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <div class="logo">▼</div>
+      <div class="title">Media Grabber</div>
+    </header>
+
+    <section class="settings">
+      <div class="opt-grid">
+        <label class="opt">
+          <span class="opt-label">Format</span>
+          <select id="fmtSel">
+            <option value="video">Video (MP4)</option>
+            <option value="m4a">Audio only (M4A)</option>
+          </select>
+        </label>
+        <label class="opt">
+          <span class="opt-label">Quality</span>
+          <select id="qualSel">
+            <option value="best">Best</option>
+            <option value="__probe">Load qualities…</option>
+          </select>
+        </label>
+      </div>
+      <label class="opt opt-dest">
+        <span class="opt-label">Save to</span>
+        <select id="destSel"></select>
+      </label>
+
+      <label class="toggle">
+        <input type="checkbox" id="autoTranscribe" />
+        <span>Auto-transcribe after download</span>
+      </label>
+      <div class="toggle-sub">Runs whisper.cpp locally — no API, no upload.</div>
+    </section>
+
+    <section id="list" class="list"></section>
+
+    <section id="pageRow" class="page-row"></section>
+
+    <section id="jobsSection" class="jobs-section hidden">
+      <div class="section-label">Activity</div>
+      <div id="jobs" class="jobs"></div>
+    </section>
+
+    <footer id="footer"></footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
