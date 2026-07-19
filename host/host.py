@@ -36,10 +36,11 @@ DEFAULT_OUTDIR = os.path.join(HOME, "Downloads")
 
 # Whisper models live beside the deployed host (install.sh downloads one there).
 MODEL_DIR = os.path.join(HOME, "Library", "Application Support", "MediaGrabber", "models")
-DEFAULT_MODEL = "small.en"
-# 4 of 8 cores. Measured ~13x realtime with small.en on an M1 (4m12s of audio in
-# 19s), which leaves enough headroom that Chrome stays responsive while it runs.
-WHISPER_THREADS = "4"
+DEFAULT_MODEL = "large-v3"
+# 16 of 20 performance cores (M3 Ultra). Leaves 4 P-cores + the E-cores for
+# Chrome/ffmpeg/system, since whisper.cpp throughput flattens out well before
+# using every core.
+WHISPER_THREADS = "16"
 
 # Log to /tmp (always writable) rather than under ~/Documents, which macOS TCC
 # can block for a process Chrome spawned — that would hide every error.
