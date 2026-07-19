@@ -644,6 +644,11 @@ def run_transcribe(req):
             "-of", stem,            # whisper appends .txt/.srt/... itself
             "-t", WHISPER_THREADS,
             "-pp",                  # emit progress we can forward to the popup
+            "-mc", "0",              # max-context 0: a hard segment's bad decode can
+                                     # otherwise get echoed back in as prompt context and
+                                     # loop-repeat for the rest of the file (seen on a
+                                     # 68-min recording) — this whisper-cli build has no
+                                     # dedicated --no-context flag, so 0 is the equivalent
         ]
         for f in formats:
             cmd.append(TRANSCRIPT_FORMATS[f])
