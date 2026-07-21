@@ -55,6 +55,22 @@ header {
 }
 .opt select:disabled { background: #f3f4f6; color: #9ca3af; cursor: default; }
 .opt-dest { margin-top: 8px; }
+
+/* Editable file name for the next download (host appends the extension). */
+.opt-name { margin-top: 8px; }
+.name-wrap {
+  display: flex; align-items: center; gap: 4px;
+  border: 1px solid #d1d5db; border-radius: 7px; background: #fff;
+  padding: 0 8px 0 0;
+}
+.name-wrap:focus-within { border-color: #4f46e5; }
+.name-wrap input {
+  flex: 1; min-width: 0;
+  border: none; background: transparent; outline: none;
+  padding: 5px 6px; font-size: 11px; font-weight: 600; color: #1f2330;
+}
+.name-ext { font-size: 11px; font-weight: 700; color: #9ca3af; flex-shrink: 0; }
+
 .settings .toggle { margin-top: 10px; padding-top: 9px; border-top: 1px solid #e5e7eb; }
 
 /* Per-job snapshot of the options it was queued with. */

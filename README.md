@@ -84,6 +84,11 @@ The settings strip at the top of the popup controls what the **next** download d
   may carry 432p and no 480p. Disabled for audio.
 - **Save to** — `Downloads` by default. **Choose folder…** opens a real macOS
   folder dialog; previously used folders stay in the list for one-click switching.
+- **Name** — the file name for the next download, prefilled from the tab title and
+  editable. Type just the stem; the extension (`.mp4`/`.m4a`, shown at the right)
+  is added for you. Unsafe characters are cleaned up and a same-named file is
+  auto-numbered, so you can't clobber an existing download. It's per-page (not
+  remembered), so each page starts from its own title.
 
 These are **snapshotted when you click Download**. Change them and queue a second
 video, and the first keeps the settings it was queued with — each job's row shows

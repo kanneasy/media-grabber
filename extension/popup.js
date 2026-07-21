@@ -9,6 +9,8 @@ const autoTxEl = document.getElementById("autoTranscribe");
 const fmtSel = document.getElementById("fmtSel");
 const qualSel = document.getElementById("qualSel");
 const destSel = document.getElementById("destSel");
+const nameInput = document.getElementById("nameInput");
+const nameExt = document.getElementById("nameExt");
 
 let currentTab = null;
 let pollTimer = null;
@@ -39,6 +41,25 @@ function currentOptions() {
 
 function shortDir(p) {
   return p ? p.split("/").filter(Boolean).pop() : "Downloads";
+}
+
+// ---- file name ---------------------------------------------------------------
+// Per-page, not a persisted setting: prefilled from the tab title each time the
+// popup opens, editable, and read at Download-click time. The host sanitizes it,
+// auto-numbers collisions, and appends the real extension, so we send just a
+// stem — and tolerate a user who typed a trailing ".mp4"/".m4a" by stripping it.
+const NAME_EXT_RE = /\.(mp4|m4a|mkv|webm|mov|m4v|mp3)$/i;
+function currentName() {
+  return (nameInput.value || "").trim().replace(NAME_EXT_RE, "").trim();
+}
+function renderNameExt() {
+  nameExt.textContent = uiSettings.mediaFormat === "m4a" ? ".m4a" : ".mp4";
+}
+function defaultName() {
+  const t = (currentTab.title || "").trim();
+  if (t) return t;
+  const it = detectedItems[0];
+  return it ? niceName(it, "") : "";
 }
 
 function qualityLabel(q) {
@@ -89,6 +110,7 @@ function renderSettings() {
   fmtSel.value = uiSettings.mediaFormat || "video";
   renderQuality();
   renderDest();
+  renderNameExt();
 }
 
 function probeQualities() {
@@ -160,7 +182,7 @@ function render(items) {
     row.querySelector("button").addEventListener("click", () => {
       enqueue({
         url: item.url, kind: item.kind, referer: item.referer,
-        source: "media", title: currentTab.title,
+        source: "media", title: currentName() || currentTab.title,
         ...currentOptions(),
       });
     });
@@ -179,7 +201,7 @@ function renderPageRow() {
       <button class="dl">Grab</button>`;
   pageRowEl.querySelector("button").addEventListener("click", () => {
     enqueue({
-      url: currentTab.url, source: "page", title: currentTab.title,
+      url: currentTab.url, source: "page", title: currentName() || currentTab.title,
       ...currentOptions(),
     });
   });
@@ -344,6 +366,7 @@ chrome.runtime.onMessage.addListener((msg) => {
   fmtSel.addEventListener("change", () => {
     saveSettings({ mediaFormat: fmtSel.value });
     renderQuality(); // audio has no resolution, so this disables/reset it
+    renderNameExt(); // .mp4 <-> .m4a suffix hint
   });
 
   qualSel.addEventListener("change", () => {
@@ -392,6 +415,9 @@ chrome.runtime.onMessage.addListener((msg) => {
       uiSettings = { ...uiSettings, ...resp.settings };
     }
     renderSettings();
+    // Prefill the editable name from the tab title (or the first stream's
+    // derived name). Per-page, so it's set here rather than from stored settings.
+    nameInput.value = defaultName();
     renderJobs(resp && resp.jobs);
     ensurePolling(resp && resp.jobs);
   });
