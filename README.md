@@ -145,6 +145,15 @@ Use a non-`.en` model (e.g. `small`) if you need languages other than English.
 - **"native host disconnected (is it installed?)"** — you haven't run
   `./install.sh <extension-id>`, or the ID changed (it changes if you remove and
   re-add the unpacked extension — just run `install.sh` again with the new ID).
+- **"Specified native messaging host not found."** — Chrome can't see the host
+  manifest. If you launched Chrome with a custom profile
+  (`--user-data-dir=/some/path`, e.g. a dev/debug instance), Chrome looks for
+  native-host manifests **inside that dir**, not the default profile's location.
+  `install.sh` auto-registers into any Chrome that's *running* when you run it; if
+  the target profile wasn't running, re-run with its dir:
+  `MG_EXTRA_USER_DATA_DIRS="/some/path" ./install.sh <extension-id>`. The same
+  cause makes **"Choose folder…"** silently fail to open Finder — the folder
+  picker uses the same native host.
 - **No video detected** — reload the page (or scrub/play the video) with the popup
   closed, then reopen it. The manifest request fires once when the player mounts.
 - **See what the helper did** — every run is logged to `/tmp/mediagrabber-host.log`.

@@ -69,9 +69,11 @@ fi
 mkdir -p "$RUNTIME_DIR"
 cp "$SRC_HOST" "$RUNTIME_HOST"
 chmod +x "$RUNTIME_HOST"
-mkdir -p "$TARGET_DIR"
 
-cat > "$TARGET" <<EOF
+# Build the manifest once, then install it into every NativeMessagingHosts dir
+# Chrome might read from (see below). Keep this in sync with the fields Chrome
+# requires: name, path, type, allowed_origins.
+MANIFEST_JSON=$(cat <<EOF
 {
   "name": "$HOST_NAME",
   "description": "Media Grabber native host (runs yt-dlp and whisper.cpp)",
@@ -80,9 +82,42 @@ cat > "$TARGET" <<EOF
   "allowed_origins": ["chrome-extension://$EXT_ID/"]
 }
 EOF
+)
 
+install_manifest() { # $1 = a NativeMessagingHosts directory
+  mkdir -p "$1"
+  printf '%s\n' "$MANIFEST_JSON" > "$1/$HOST_NAME.json"
+}
+
+# 1) The default profile's location (the normal case).
+install_manifest "$TARGET_DIR"
 echo "Installed native host manifest:"
 echo "  $TARGET"
+
+# 2) Custom user-data-dirs. On macOS, Chrome looks for native-host manifests
+#    INSIDE its --user-data-dir, so a dev/debug Chrome started with
+#    --user-data-dir=/some/path won't see the manifest above (that's only the
+#    DEFAULT profile's dir) and reports "Specified native messaging host not
+#    found." We register there too: (a) any Chrome currently running with a
+#    custom --user-data-dir, plus (b) any dirs named in $MG_EXTRA_USER_DATA_DIRS
+#    (newline-separated) for profiles that aren't running yet.
+DEFAULT_UDD="$HOME/Library/Application Support/Google/Chrome"
+{
+  ps -Ao command= 2>/dev/null \
+    | grep -F 'Google Chrome.app/Contents/MacOS/Google Chrome' \
+    | grep -v -- '--type=' \
+    | perl -ne 'print "$1\n" while /--user-data-dir=(.+?)(?= --|$)/g' \
+    | sed 's/[[:space:]]*$//'
+  printf '%s\n' "${MG_EXTRA_USER_DATA_DIRS:-}"
+} | sort -u | while IFS= read -r udd; do
+  [[ -z "$udd" ]] && continue
+  [[ "$udd" == "$DEFAULT_UDD" ]] && continue   # same as $TARGET_DIR, already done
+  install_manifest "$udd/NativeMessagingHosts"
+  echo "  also registered for custom profile: $udd/NativeMessagingHosts"
+done
+
 echo "Deployed helper (runs from here): $RUNTIME_HOST"
 echo
 echo "Done. No Chrome restart needed — open the popup and download."
+echo "(Using a custom Chrome profile that wasn't running? Re-run with"
+echo " MG_EXTRA_USER_DATA_DIRS=\"/path/to/user-data-dir\" ./install.sh $EXT_ID)"
